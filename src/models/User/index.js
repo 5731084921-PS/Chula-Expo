@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt-nodejs');
 const crypto = require('crypto');
 const mongoose = require('mongoose');
+const jwt = require('jsonwebtoken');
 
 const ObjectId = mongoose.Schema.Types.ObjectId;
 
@@ -58,31 +59,58 @@ const ActivityLogSchema = new mongoose.Schema({
  * User Schema
  */
 const UserSchema = new mongoose.Schema({
-  email: { type: String, unique: true },
-  password: String,
+  email: { type: String, unique: true, required: true },
+  password: { type: String },
   passwordResetToken: String,
   passwordResetExpires: Date,
 
-  facebook: String,
-  google: String,
+  facebook: { type: String },
+  google: { type: String },
   tokens: Array,
 
-  name: String,
-  gender: String,
-  age: Number,
-  pictureUrl: String,
+  name: { type: String, required: true },
+  gender: {
+    type: String,
+    required: true,
+    enum: ['Male', 'Female', 'Etc']
+  },
+  age: { type: Number, required: true },
+  profile: String,
+  type: {
+    type: String,
+    required: true,
+    enum: ['Academic', 'Worker', 'Staff']
+  },
   academic: {
-    year: Number,
-    school: String
+    level: {
+      type: String
+    },
+    year: {
+      type: String
+    },
+    school: {
+      type: String
+    },
   },
   worker: {
+    job: String,
     company: String
+  },
+  staff: {
+    staffType: {
+      type: String,
+      enum: ['Staff', 'Admin', 'Scanner']
+    },
+    zone: {
+      type: ObjectId,
+      ref: 'Zone'
+    }
   },
   bookmarkActivity: [BookmarkActivitySchema],
   reservedActivity: [ReservedActivitySchema],
-  qrcodeUrl: String,
+  qrcode: String,
   game: {
-    totalScore: Number,
+    totalScore: { type: Number, default: 0 },
     pending: [{
       type: ObjectId,
       ref: 'Game'
@@ -92,8 +120,19 @@ const UserSchema = new mongoose.Schema({
       ref: 'Game'
     }]
   },
-  activityLog: [ActivityLogSchema]
+  activityLog: [ActivityLogSchema],
+  loveTags: [{
+    type: ObjectId,
+    ref: 'Tag'
+  }],
+  loveFaculties: [{
+    type: ObjectId,
+    ref: 'Zone'
+  }],
+  createAt: { type: Date, default: new Date() },
+  updateAt: { type: Date, default: new Date() },
 }, { timestamps: true });
+
 
 /**
  * Password hash middleware.
@@ -133,6 +172,18 @@ UserSchema.methods.gravatar = function gravatar(size) {
   const md5 = crypto.createHash('md5').update(this.email).digest('hex');
   return `https://gravatar.com/avatar/${md5}?s=${size}&d=retro`;
 };
+
+/**
+ * User generate token
+ */
+UserSchema.methods.generateToken = function generateToken() {
+  return jwt.sign({
+    sub: this.id,
+  }, process.env.JWT_SECRET, {
+    expiresIn: 8 * 60 * 60 /* expires in 8 hrs */,
+  });
+};
+
 
 const User = mongoose.model('User', UserSchema);
 

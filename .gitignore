@@ -1,8 +1,10 @@
 node_modules
 
+.env
+
 .DS_Store
 
-mongodb/*
-mongodb/**/*
-
 *.log
+npm-debug.log.*
+src/public/lib/*
+!src/public/lib/popup-tools

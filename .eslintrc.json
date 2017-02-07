@@ -1,5 +1,4 @@
 {
-  "parser": "mocha",
   "extends": "airbnb-base",
   "rules": {
     "comma-dangle": "off",
@@ -8,6 +7,7 @@
     "no-plusplus": "off",
     "no-param-reassign": 0,
     "consistent-return": 0,
-    "no-shadow": 0
+    "no-shadow": 0,
+    "linebreak-style": "off"
   }
 }

@@ -1,0 +1,222 @@
+<!-- Libery -->
+<link rel="import" href="/public/lib/polymer/polymer.html">
+<!-- Web Component -->
+<link rel="import" href="/public/lib/vaadin-upload/vaadin-upload.html">
+<link rel="import" href="/public/lib/paper-card/paper-card.html">
+<link rel="import" href="/public/lib/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="/public/lib/paper-autocomplete/paper-autocomplete.html">
+<link rel="import" href="/public/lib/paper-tags-input/paper-tags-input.html">
+<link rel="import" href="/public/lib/paper-input/paper-textarea.html">
+<link rel="import" href="/public/lib/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="/public/lib/greenyouse-datetime-local-input/datetime-local-input.html">
+<link rel="import" href="/public/lib/google-map/google-map.html">
+<link rel="import" href="/public/lib/google-map/google-map-marker.html">
+<link rel="import" href="/public/lib/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="/public/lib/paper-listbox/paper-listbox.html">
+<link rel="import" href="/public/lib/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="/public/lib/vaadin-combo-box/vaadin-combo-box.html">
+
+<link rel="import" href="/components/shared-styles.html">
+
+<dom-module id="facility-add-page">
+    <template>
+    <style is="custom-style" include="shared-styles">
+      :host {
+        @apply(--layout-vertical);
+        @apply(--layout-center-center);
+        padding-top: 20px;
+      }
+
+      paper-card {
+        width: 100%;
+      }
+
+      .item {
+        margin-bottom: 10px;
+      }
+
+      .avatar {
+        display: inline-block;
+        height: 40px;
+        overflow: hidden;
+        margin-right: 20px;
+      }
+
+      .flex-layout {
+        @apply(--layout-horizontal);
+      }
+      .flex {
+        @apply(--layout-flex);
+      }
+      .label {
+        font-weight: 200;
+        width: 100px;
+        display: inline-block;
+        margin-right: 20px;
+      }
+      .label.--upload {
+        line-height: 70px;
+      }
+
+      .company {
+        font-size: 20px;
+        font-weight: 200;
+      }
+      google-map {
+        height: 300px;
+      }
+      .google-map {
+        display: block;
+        height: 300px;
+      }
+
+			.button-holder {
+        @apply(--layout-horizontal);
+        @apply(--layout-end-justified);
+        margin-top: 10px;
+      }
+
+    </style>
+    <div class="container">
+      <paper-card>
+				<form is="iron-form" id="form" method="post" class="card-content"
+					action="/api/facilities" on-iron-form-presubmit="_presubmit" on-iron-form-response="_response">
+					<div class="card-content">
+
+						<!-- type -->
+						<div class="item">
+							<label class="label --input">Type</label>
+							<div class="flex" style="display: inline-block">
+								<paper-dropdown-menu label="" no-label-float="true" name="type" required>
+									<paper-listbox class="dropdown-content">
+										<paper-item value="toilet">Toilet</paper-item>
+										<paper-item value="city">Canteen</paper-item>
+										<paper-item value="carpark">Car park</paper-item>
+										<paper-item value="prayer">Prayer</paper-item>
+									</paper-listbox>
+								</paper-dropdown-menu>
+							</div>
+						</div>
+
+						<!-- Location -->
+						<div class="item">
+							<label class="label --input">Place</label>
+							<div class="" style="display: inline-block">
+                <vaadin-combo-box name="place" id="input-place" class="elements-box" no-label-float="true" item-label-path="name" item-value-path="value" required></vaadin-combo-box>
+							</div>
+              <script>
+                HTMLImports.whenReady(function() {
+                  var combobox = document.querySelector('facility-add-page').querySelector('#input-place');
+
+                  var url = '/api/places';
+  								setTimeout(function () {
+  									var req = new XMLHttpRequest();
+  									req.open('GET',encodeURI(url));
+  									req.onload = function() {
+  										if (req.status === 200) {
+  											var data = JSON.parse(req.response);
+  											var arr = data.results.map(function(obj){
+  												return { name:obj.name.en, value:obj['_id'] };
+  											});
+                        combobox.items = arr;
+  										}
+  									};
+  									req.send();
+  								}.bind(this), 500);
+                });
+
+              </script>
+						</div>
+
+						<!-- Google Map -->
+						<div class="item">
+							<google-map latitude="[[latitude]]" longitude="[[longitude]]" zoom="[[zoom]]" api-key="AIzaSyDqaDUBa0p8qYiWDwjYUlxkInJuwgTxD1o">
+								<google-map-marker latitude="{{latitude}}" longitude="{{longitude}}" draggable="true"
+										title="facility Location!" ></google-map-marker>
+							</google-map>
+						</div>
+					</div>
+					<div class="card-content">
+						<!-- Thai Language -->
+						<div class="flex-layout center">
+							<div class="avatar" item-icon><img src="/public/img/th.png" /></div>
+							<div class="flex company">ภาษาไทย</div>
+						</div>
+						<paper-input type="text" label="ชื่อ" name="nameTH" always-float-label required></paper-input>
+						<paper-textarea label="รายละเอียด" name="descriptionTH" rows="4" always-float-label required></paper-textarea>
+          </div>
+
+          <div class="card-content">
+						<!-- English Language -->
+						<div class="flex-layout center">
+							<div class="avatar" item-icon><img src="/public/img/en.png" /></div>
+							<div class="flex company">English</div>
+						</div>
+						<paper-input type="text" label="name" name="nameEN" always-float-label required></paper-input>
+						<paper-textarea label="Description" name="descriptionEN" rows="4" always-float-label required></paper-textarea>
+					</div>
+
+					<!-- Submit Button -->
+					<div class="card-actions">
+						<div class="button-holder">
+							<paper-button on-click="_delayedSubmit">
+								<paper-spinner id="spinner" hidden></paper-spinner>Submit
+							</paper-button>
+							<!-- Reset Button -->
+							<paper-button on-click="_reset">Reset</paper-button>
+						</div>
+					</div>
+				</form>
+      </paper-card>
+    </div>
+  </template>
+    <script>
+        Polymer({
+            is: 'facility-add-page',
+            properties: {
+                token: {
+                    type: String,
+                },
+                latitude: {
+                    type: Number,
+                    value: 13.7383777
+                },
+                longitude: {
+                    type: Number,
+                    value: 100.53205279999997
+                },
+                zoom: {
+                    type: Number,
+                    value: 16
+                },
+                tags_list: {
+                    type: Array,
+                    value: ['Chula Expo']
+                }
+            },
+            _delayedSubmit: function(event) {
+                var form = this.$.form;
+                this.$.spinner.active = true;
+                this.$.spinner.hidden = false;
+                this.$.form.disabled = true;
+                // Simulate a slow server response.
+                setTimeout(function() {
+                    form.submit();
+                }, 1000);
+            },
+            _response: function(e) {
+                if (e.detail.response.success) {
+                   this.$.form.reset();
+                   window.location = '/facility';
+                }
+            },
+            _reset: function(event) {
+                this.$.form.reset();
+            },
+            _presubmit: function(event) {
+                this.$.form.request.body.locationLat = this.latitude;
+                this.$.form.request.body.locationLong = this.longitude;
+            }
+        })
+    </script>
+</dom-module>

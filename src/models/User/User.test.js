@@ -1,27 +1,32 @@
-const mongoose = require('mongoose');
-const expect = require('chai').expect;
+
+/* eslint-env node, mocha */
+/* eslint-disable no-unused-expressions */
+
+const chai = require('chai');
 const sinon = require('sinon');
 require('sinon-mongoose');
+
+const expect = chai.expect;
 
 const User = require('./');
 
 describe('User Model', () => {
   it('should create a new user', (done) => {
-    const UserMock = sinon.mock(new User({ email: 'test@gmail.com', password: 'root' }));
+    const UserMock = sinon.mock(new User());
     const user = UserMock.object;
 
     UserMock
       .expects('save')
       .yields(null);
 
-    user.save((err, result) => {
+    user.save((err) => {
       UserMock.verify();
       UserMock.restore();
       expect(err).to.be.null;
       done();
     });
   });
-  
+
   it('should return error if user is not created', (done) => {
     const UserMock = sinon.mock(new User({ email: 'test@gmail.com', password: 'root' }));
     const user = UserMock.object;
@@ -81,7 +86,7 @@ describe('User Model', () => {
       userMock.restore();
       expect(result.email).to.equal('test@gmail.com');
       done();
-    })
+    });
   });
 
   it('should remove user by email', (done) => {
@@ -101,6 +106,6 @@ describe('User Model', () => {
       expect(err).to.be.null;
       expect(result.nRemoved).to.equal(1);
       done();
-    })
+    });
   });
 });
